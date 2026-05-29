@@ -529,7 +529,7 @@ pub const COMMANDS: &[CommandInfo] = &[
     CommandInfo {
         name: "cache",
         aliases: &[],
-        usage: "/cache [count|inspect|warmup]",
+        usage: "/cache [count|inspect|stats|warmup]",
         description_id: MessageId::CmdCacheDescription,
     },
 ];
