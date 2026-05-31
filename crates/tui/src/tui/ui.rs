@@ -2656,6 +2656,40 @@ async fn run_event_loop(
                 {
                     continue;
                 }
+                // Space toggles fold/unfold of the focused thinking block
+                // when the composer is empty. For thinking cells, toggles
+                // between summary and full content; for other cells, toggles
+                // visibility (#1972, #2348).
+                KeyCode::Char(' ')
+                    if key.modifiers == KeyModifiers::NONE && app.input.is_empty() =>
+                {
+                    if let Some(idx) = detail_target_cell_index(app) {
+                        let is_thinking = app
+                            .history
+                            .get(idx)
+                            .is_some_and(|c| matches!(c, HistoryCell::Thinking { .. }));
+                        if is_thinking {
+                            if app.folded_thinking.contains(&idx) {
+                                app.folded_thinking.remove(&idx);
+                                app.status_message =
+                                    Some("Thinking block expanded".to_string());
+                            } else {
+                                app.folded_thinking.insert(idx);
+                                app.status_message =
+                                    Some("Thinking block folded".to_string());
+                            }
+                        } else if app.collapsed_cells.contains(&idx) {
+                            app.collapsed_cells.remove(&idx);
+                            app.status_message = Some("Cell expanded".to_string());
+                        } else {
+                            app.collapsed_cells.insert(idx);
+                            app.status_message = Some("Cell collapsed".to_string());
+                        }
+                        app.mark_history_updated();
+                        app.needs_redraw = true;
+                    }
+                    continue;
+                }
                 KeyCode::Char('t') | KeyCode::Char('T')
                     if key.modifiers == KeyModifiers::CONTROL =>
                 {

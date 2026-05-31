@@ -1229,6 +1229,10 @@ pub struct App {
     /// Transcript cells the user has collapsed (hidden from view).
     /// Stores **original** virtual cell indices (pre-filtering).
     pub collapsed_cells: HashSet<usize>,
+    /// Thinking cells the user has folded (showing summary instead of full
+    /// content). Stores **original** virtual cell indices. Toggled by Space
+    /// when the composer is empty and the cursor is on a thinking cell.
+    pub folded_thinking: HashSet<usize>,
     /// Mapping from filtered cell index → original virtual index.
     /// Populated during `ChatWidget::new` by filtering out collapsed cells.
     /// Used by `build_context_menu_entries` to convert line-meta indices
@@ -1743,6 +1747,7 @@ impl App {
             last_prefix_change_desc: None,
             cycle: CycleConfig::default(),
             collapsed_cells: HashSet::new(),
+            folded_thinking: HashSet::new(),
             collapsed_cell_map: Vec::new(),
             edit_in_progress: false,
             lsp_enabled: config.lsp.as_ref().and_then(|l| l.enabled).unwrap_or(true),
