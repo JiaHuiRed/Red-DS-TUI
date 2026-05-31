@@ -9,9 +9,10 @@ use crate::tui::file_mention::{
     try_autocomplete_file_mention, user_request_with_file_mentions, visible_mention_menu_entries,
 };
 use crate::tui::footer_ui::{
-    active_tool_status_label, footer_auxiliary_spans, footer_cache_spans, footer_coherence_spans,
-    footer_state_label, footer_status_line_spans, format_context_budget,
-    format_token_count_compact, friendly_subagent_progress, render_footer_from,
+    active_tool_status_label, footer_auxiliary_spans, footer_balance_spans, footer_cache_spans,
+    footer_coherence_spans, footer_session_tokens_spans, footer_state_label,
+    footer_status_line_spans, format_context_budget, format_token_count_compact,
+    friendly_subagent_progress, render_footer_from,
 };
 use crate::tui::history::{
     ExecCell, ExecSource, GenericToolCell, HistoryCell, ToolCell, ToolStatus,
@@ -2176,6 +2177,21 @@ fn format_token_count_compact_formats_units() {
     assert_eq!(format_token_count_compact(999), "999");
     assert_eq!(format_token_count_compact(1_200), "1.2k");
     assert_eq!(format_token_count_compact(1_000_000), "1.0M");
+}
+
+#[test]
+fn footer_session_tokens_chip_uses_single_compact_total() {
+    let mut app = create_test_app();
+    app.session.total_input_tokens = 900_000;
+    app.session.total_cache_hit_tokens = 700_000;
+    app.session.total_cache_miss_tokens = 200_000;
+    app.session.total_output_tokens = 600_000;
+
+    let text = spans_text(&footer_session_tokens_spans(&app));
+
+    assert_eq!(text, "tok 1.5M");
+    assert!(!text.contains(" cch "));
+    assert!(!text.contains(" out"));
 }
 
 #[test]
