@@ -54,7 +54,9 @@ pub(crate) fn concise_shell_command_label(command: &str, max_width: usize) -> St
 }
 
 fn normalize_shell_text(text: &str) -> String {
-    text.split_whitespace().collect::<Vec<_>>().join(" ")
+    let mut cleaned = String::with_capacity(text.len());
+    crate::tui::osc8::strip_ansi_into(text, &mut cleaned);
+    cleaned.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn actionable_shell_segment(command: &str) -> Option<String> {

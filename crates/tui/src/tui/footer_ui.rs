@@ -320,8 +320,10 @@ fn collect_active_tool_status(cell: &HistoryCell, snapshot: &mut ActiveToolStatu
 }
 
 pub(crate) fn one_line_summary(text: &str, max_width: usize) -> String {
+    let mut cleaned = String::with_capacity(text.len());
+    crate::tui::osc8::strip_ansi_into(text, &mut cleaned);
     truncate_line_to_width(
-        &text.split_whitespace().collect::<Vec<_>>().join(" "),
+        &cleaned.split_whitespace().collect::<Vec<_>>().join(" "),
         max_width,
     )
 }
