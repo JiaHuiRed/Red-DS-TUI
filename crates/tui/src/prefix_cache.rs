@@ -42,7 +42,7 @@ use crate::models::{SystemPrompt, Tool};
 pub struct PrefixFingerprint {
     /// SHA-256 of the system prompt text.
     pub system_sha256: String,
-    /// SHA-256 of the concatenated, sorted tool names.
+    /// SHA-256 of the full tool catalog JSON (names, descriptions, schemas).
     pub tools_sha256: String,
     /// SHA-256 of system_sha256 ++ tools_sha256 (combined).
     pub combined_sha256: String,
@@ -50,16 +50,21 @@ pub struct PrefixFingerprint {
 
 impl PrefixFingerprint {
     /// Compute a fingerprint from system prompt text and tool list.
+    ///
+    /// Tools are serialized to JSON (name + description + schema), sorted
+    /// by name for deterministic ordering, then SHA-256 hashed. This
+    /// catches schema/description drift, not just name changes (#2264).
     pub fn compute(system_text: &str, tools: Option<&[Tool]>) -> Self {
         let system_sha256 = sha256_hex(system_text.as_bytes());
 
         let tools_sha256 = match tools {
             Some(tools) if !tools.is_empty() => {
-                // Sort tool names deterministically so the hash is
-                // stable regardless of registration order.
-                let mut tool_names: Vec<&str> = tools.iter().map(|t| t.name.as_str()).collect();
-                tool_names.sort();
-                let joined = tool_names.join(",");
+                let mut serialized: Vec<String> = tools
+                    .iter()
+                    .filter_map(|t| serde_json::to_string(t).ok())
+                    .collect();
+                serialized.sort();
+                let joined = serialized.join("\n");
                 sha256_hex(joined.as_bytes())
             }
             _ => sha256_hex(b""),
@@ -487,6 +492,19 @@ mod tests {
         assert!(mgr.check_and_update("hello", None).unwrap());
         assert!(mgr.pinned_fingerprint().is_some());
         assert_eq!(mgr.check_count(), 1);
+    }
+
+    #[test]
+    fn fingerprint_detects_schema_change_not_just_name_change() {
+        let tool_a = make_tool("my_tool");
+        let mut tool_a_v2 = make_tool("my_tool");
+        tool_a_v2.description = "updated description".to_string();
+
+        let a = PrefixFingerprint::compute("system", Some(&[tool_a]));
+        let b = PrefixFingerprint::compute("system", Some(&[tool_a_v2]));
+        // Same name, different description — must produce different hash.
+        assert_ne!(a.tools_sha256, b.tools_sha256);
+        assert_ne!(a.combined_sha256, b.combined_sha256);
     }
 
     #[test]
