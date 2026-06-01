@@ -51,18 +51,18 @@ pub struct PrefixFingerprint {
 impl PrefixFingerprint {
     /// Compute a fingerprint from system prompt text and tool list.
     ///
-    /// Tools are serialized to JSON (name + description + schema), sorted
-    /// by name for deterministic ordering, then SHA-256 hashed. This
-    /// catches schema/description drift, not just name changes (#2264).
+    /// Tools are serialized to the same JSON shape the chat API receives
+    /// (`type`, `name`, `description`, `parameters`, `strict`), sorted
+    /// lexicographically by JSON text, then SHA-256 hashed. This catches
+    /// schema/description drift that actually affects the API prefix,
+    /// while ignoring internal-only fields like `allowed_callers` (#2264).
     pub fn compute(system_text: &str, tools: Option<&[Tool]>) -> Self {
         let system_sha256 = sha256_hex(system_text.as_bytes());
 
         let tools_sha256 = match tools {
             Some(tools) if !tools.is_empty() => {
-                let mut serialized: Vec<String> = tools
-                    .iter()
-                    .filter_map(|t| serde_json::to_string(t).ok())
-                    .collect();
+                let mut serialized: Vec<String> =
+                    tools.iter().filter_map(tool_to_api_json).collect();
                 serialized.sort();
                 let joined = serialized.join("\n");
                 sha256_hex(joined.as_bytes())
@@ -308,6 +308,26 @@ impl PrefixStabilityManager {
             changes = self.change_count,
         )
     }
+}
+
+/// Serialize a tool to the same JSON shape the chat API receives,
+/// excluding internal-only fields like `allowed_callers`, `defer_loading`,
+/// `input_examples`, and `cache_control` that are never sent to DeepSeek.
+fn tool_to_api_json(tool: &Tool) -> Option<String> {
+    let mut value = serde_json::json!({
+        "type": "function",
+        "function": {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": tool.input_schema,
+        }
+    });
+    if let Some(strict) = tool.strict
+        && let Some(function) = value.get_mut("function")
+    {
+        function["strict"] = serde_json::json!(strict);
+    }
+    serde_json::to_string(&value).ok()
 }
 
 /// Compute the SHA-256 hex digest of a byte slice.
