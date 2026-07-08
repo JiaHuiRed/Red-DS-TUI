@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "deepseek-tui"
 version.workspace = true
 edition.workspace = true
@@ -14,7 +14,7 @@ web = ["dep:schemaui", "schemaui/web", "json", "toml"]
 json = ["schemaui/json"]
 toml = ["schemaui/toml"]
 
-#260520 Red �����Ƹ���Ϊ RedsWhale-tui
+#260520 Red 定制更名为 RedsWhale-tui
 [[bin]]
 name = "RedsWhale-tui"
 path = "src/main.rs"
@@ -22,8 +22,8 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.100"
 arboard = "3.4"
-deepseek-secrets = { path = "../secrets", version = "0.0.11" }
-deepseek-tools = { path = "../tools", version = "0.0.11" }
+deepseek-secrets = { path = "../secrets", version = "0.0.12" }
+deepseek-tools = { path = "../tools", version = "0.0.12" }
 schemaui = { version = "0.12.0", default-features = false, optional = true }
 async-stream = "0.3.6"
 async-trait = "0.1"
@@ -38,10 +38,10 @@ dirs = "6.0.0"
 fd-lock = "4.0.4"
 futures-util = "0.3.31"
 ratatui = "0.30"
-#260521 Red ������﷨��??
+#260521 Red ???????????
 syntect = { version = "5", default-features = false, features = ["default-syntaxes", "default-themes", "regex-fancy"] }
 regex = "1.11"
-#260521 Red ���� native-tls ���� aws-lc-sys ??MinGW UCRT �ϵ� nanosleep64 ���Ӵ���
+#260521 Red ???? native-tls ???? aws-lc-sys ??MinGW UCRT ??? nanosleep64 ???????
 reqwest = { version = "0.13.1", default-features = false, features = ["blocking", "json", "stream", "multipart", "native-tls", "http2", "gzip", "brotli"] }
 similar = "2"
 rustyline = "15.0.0"

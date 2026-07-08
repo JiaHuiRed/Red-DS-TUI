@@ -7,6 +7,24 @@
 
 ---
 
+## [0.0.12] - 2026-07-08
+
+### 新增 (Upstream Cherry-Pick)
+
+- **Thinking 块折叠/展开**（`history.rs` / `transcript.rs` / `ui.rs`）：Space 键切换 Thinking 块的折叠/展开，折叠时显示摘要预览，展开时显示完整内容。非 Thinking 块保留原有隐藏/显示行为。（#2348）
+- **Session token 分解展示**（`footer_ui.rs` / `commands/status.rs` / `commands/session.rs`）：footer 状态栏和 `/status` 命令现在分开显示 input / cache hit / cache miss / output 各分项 token 数，不再混在一起。（#2152）
+- **`/cache stats` 命令**（`commands/debug.rs` / `prefix_cache.rs`）：新增 prefix-cache 稳定性统计、prefix fingerprint 变化追踪、缓存命中汇总等健康状态报告。（#2264）
+- **Cache warmup 键追踪**（`client/chat.rs` / `commands/debug.rs`）：记录上次 warmup 的 provider/model/静态前缀/工具目录等关键信息，`/cache inspect` 输出 warmup 失效原因（provider 切换、模型切换、前缀变化等）。（#2424）
+- **紧凑 statusline token 芯片**（`footer_ui.rs`）：footer token 显示更紧凑，配合分解展示更清晰。（#2411）
+
+### 修复
+
+- **ANSI 转义序列泄漏**（`footer_ui.rs` / `sidebar.rs`）：Footer 工具状态标签和侧栏活动文本中原始 ANSI 转义码泄漏到 UI，现正常剥离。（#2481）
+- **Prefix-cache 指纹硬编码加固**（`prefix_cache.rs`）：PrefixFingerprint 改用完整工具 JSON hash（而非文字描述），且只 hash API 可见的工具字段，排除内部元数据。provider/model 切换时自动清除缓存的 pinned prefix hash。
+- **Stale hash / cache 聚合清理**（`commands/debug.rs` / `engine/turn_loop.rs`）：修复 Code Review 中发现的问题——过时 hash、cache 聚合不准确、hash 未清零等。（#2264）
+
+---
+
 ## [0.0.11] - 2026-06-25
 
 ### 优化
