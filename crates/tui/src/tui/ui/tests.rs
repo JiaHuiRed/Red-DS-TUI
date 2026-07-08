@@ -9,7 +9,7 @@ use crate::tui::file_mention::{
     try_autocomplete_file_mention, user_request_with_file_mentions, visible_mention_menu_entries,
 };
 use crate::tui::footer_ui::{
-    active_tool_status_label, footer_auxiliary_spans, footer_balance_spans, footer_cache_spans,
+    active_tool_status_label, footer_auxiliary_spans, footer_cache_spans,
     footer_coherence_spans, footer_session_tokens_spans, footer_state_label,
     footer_status_line_spans, format_context_budget, format_token_count_compact,
     friendly_subagent_progress, render_footer_from,

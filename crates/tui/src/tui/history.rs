@@ -320,48 +320,7 @@ impl HistoryCell {
         }
     }
 
-    #[allow(dead_code)]
-    pub(crate) fn lines_with_copy_metadata(
-        &self,
-        width: u16,
-        options: TranscriptRenderOptions,
-    ) -> Vec<RenderedTranscriptLine> {
-        self.lines_with_copy_metadata_folded(width, options, false)
-    }
 
-    pub(crate) fn lines_with_copy_metadata_folded(
-        &self,
-        width: u16,
-        options: TranscriptRenderOptions,
-        folded: bool,
-    ) -> Vec<RenderedTranscriptLine> {
-        match self {
-            HistoryCell::User { content } => render_message_with_copy_metadata(
-                USER_GLYPH,
-                user_label_style(),
-                user_body_style(),
-                content,
-                width,
-            ),
-            HistoryCell::Assistant { content, streaming } => render_message_with_copy_metadata(
-                ASSISTANT_GLYPH,
-                assistant_label_style_for(*streaming, options.low_motion),
-                message_body_style(),
-                content,
-                width,
-            ),
-            HistoryCell::System { content } if !is_cycle_boundary(content) => {
-                render_message_with_copy_metadata(
-                    "Note",
-                    system_label_style(),
-                    system_body_style(),
-                    content,
-                    width,
-                )
-            }
-            _ => hard_break_copy_lines(self.lines_with_options_folded(width, options, folded)),
-        }
-    }
     /// Render the cell in transcript mode: full content, no caps, no
     /// "Alt+V for details" affordances.
     ///

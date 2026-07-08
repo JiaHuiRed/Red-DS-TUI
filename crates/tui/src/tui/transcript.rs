@@ -189,16 +189,8 @@ impl TranscriptViewCache {
                     width
                 };
                 let folded = folded_cells.contains(&idx);
-                let rendered = cell.lines_with_copy_metadata_folded(render_width, options, folded);
-                let mut lines = Vec::with_capacity(rendered.len());
-                let mut copy_separators = Vec::with_capacity(rendered.len());
-                let mut copy_prefix_widths = Vec::with_capacity(rendered.len());
-                for rendered_line in rendered {
-                    lines.push(rendered_line.line);
-                    copy_prefix_widths.push(rendered_line.copy_prefix_width);
-                    copy_separators.push(rendered_line.copy_separator_after);
-                }
-                let is_empty = lines.is_empty();
+                let rendered = cell.lines_with_options_folded(render_width, options, folded);
+                let is_empty = rendered.is_empty();
                 new_per_cell.push(CachedCell {
                     revision: current_rev,
                     lines: Arc::new(rendered),
