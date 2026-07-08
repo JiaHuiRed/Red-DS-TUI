@@ -488,8 +488,8 @@ impl<'a> ComposerWidget<'a> {
         actual.max(usize::from(self.max_height_cap()))
     }
 
-    fn has_panel(&self, area: Rect) -> bool {
-        self.app.composer_border && area.height >= 3 && area.width >= 12
+    fn has_panel(&self, _area: Rect) -> bool {
+        self.app.composer_border
     }
 
     fn inner_area(&self, area: Rect) -> Rect {
@@ -1997,7 +1997,7 @@ fn composer_height(
     density: ComposerDensity,
     show_panel: bool,
 ) -> u16 {
-    let has_panel = show_panel && available_height >= 3 && width >= 12;
+    let has_panel = show_panel;
     let chrome_height = if has_panel {
         usize::from(COMPOSER_PANEL_HEIGHT)
     } else {

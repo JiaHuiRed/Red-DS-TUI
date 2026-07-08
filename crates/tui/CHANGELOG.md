@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.41] - 2026-07-08
+
+### Added
+
+- **Composer select-all support (`app.rs` / `ui.rs`).** `Ctrl+A` now selects
+  the entire composer text instead of moving the cursor to the start. When
+  text is selected, Backspace/Delete clears everything and typing replaces
+  the content. Cursor movement clears the selection.
+
+### Changed
+
+- **Composer border always visible when enabled (`widgets/mod.rs`).**
+  Removed the minimum-area check so `composer_border = true` always renders
+  the panel, providing clear visual separation between chat history and
+  the input box.
+
+---
+
 ## [0.8.40] - 2026-05-21
 
 ### Added

@@ -3326,10 +3326,15 @@ async fn run_event_loop(
                 KeyCode::End if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     app.scroll_to_bottom();
                 }
-                KeyCode::Home | KeyCode::Char('a')
+                KeyCode::Home
                     if key.modifiers.contains(KeyModifiers::CONTROL) =>
                 {
                     app.move_cursor_start();
+                }
+                KeyCode::Char('a')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                {
+                    app.select_all();
                 }
                 KeyCode::Home => {
                     app.move_cursor_line_start();

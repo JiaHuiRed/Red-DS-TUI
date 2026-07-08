@@ -716,6 +716,9 @@ pub struct ComposerState {
     pub cursor_position: usize,
     /// Single-entry kill buffer for emacs-style `Ctrl+K` cut / `Ctrl+Y` yank.
     pub kill_buffer: String,
+    /// Whether the entire input is selected (via Ctrl+A). When true, the next
+    /// Backspace/Delete/typing clears/replaces all content.
+    pub select_all: bool,
     pub paste_burst: PasteBurst,
     pub input_history: Vec<String>,
     pub draft_history: VecDeque<String>,
@@ -747,6 +750,7 @@ impl Default for ComposerState {
             input: String::new(),
             cursor_position: 0,
             kill_buffer: String::new(),
+            select_all: false,
             paste_burst: PasteBurst::default(),
             input_history: Vec::new(),
             draft_history: VecDeque::new(),
@@ -1593,6 +1597,7 @@ impl App {
                 input: initial_input_text,
                 cursor_position: initial_input_cursor,
                 kill_buffer: String::new(),
+                select_all: false,
                 paste_burst: PasteBurst::default(),
                 input_history,
                 draft_history: VecDeque::new(),
@@ -3117,6 +3122,11 @@ impl App {
     pub fn insert_char(&mut self, c: char) {
         self.clear_input_history_navigation();
         self.selected_attachment_index = None;
+        if self.select_all {
+            self.input.clear();
+            self.cursor_position = 0;
+            self.select_all = false;
+        }
         let cursor = self.cursor_position.min(char_count(&self.input));
         let byte_index = byte_index_at_char(&self.input, cursor);
         self.input.insert(byte_index, c);
@@ -3143,6 +3153,16 @@ impl App {
     pub fn delete_char(&mut self) {
         self.clear_input_history_navigation();
         self.selected_attachment_index = None;
+        if self.select_all {
+            self.input.clear();
+            self.cursor_position = 0;
+            self.select_all = false;
+            self.slash_menu_hidden = false;
+            self.mention_menu_hidden = false;
+            self.mention_menu_selected = 0;
+            self.needs_redraw = true;
+            return;
+        }
         if self.cursor_position == 0 {
             return;
         }
@@ -3160,6 +3180,16 @@ impl App {
     pub fn delete_char_forward(&mut self) {
         self.clear_input_history_navigation();
         self.selected_attachment_index = None;
+        if self.select_all {
+            self.input.clear();
+            self.cursor_position = 0;
+            self.select_all = false;
+            self.slash_menu_hidden = false;
+            self.mention_menu_hidden = false;
+            self.mention_menu_selected = 0;
+            self.needs_redraw = true;
+            return;
+        }
         if self.input.is_empty() {
             return;
         }
@@ -3178,6 +3208,16 @@ impl App {
     pub fn delete_word_backward(&mut self) {
         self.clear_input_history_navigation();
         self.selected_attachment_index = None;
+        if self.select_all {
+            self.input.clear();
+            self.cursor_position = 0;
+            self.select_all = false;
+            self.slash_menu_hidden = false;
+            self.mention_menu_hidden = false;
+            self.mention_menu_selected = 0;
+            self.needs_redraw = true;
+            return;
+        }
         if self.cursor_position == 0 {
             return;
         }
@@ -3219,6 +3259,16 @@ impl App {
     pub fn delete_to_start_of_line(&mut self) {
         self.clear_input_history_navigation();
         self.selected_attachment_index = None;
+        if self.select_all {
+            self.input.clear();
+            self.cursor_position = 0;
+            self.select_all = false;
+            self.slash_menu_hidden = false;
+            self.mention_menu_hidden = false;
+            self.mention_menu_selected = 0;
+            self.needs_redraw = true;
+            return;
+        }
         if self.cursor_position == 0 {
             return;
         }
@@ -3244,6 +3294,16 @@ impl App {
     pub fn delete_word_forward(&mut self) {
         self.clear_input_history_navigation();
         self.selected_attachment_index = None;
+        if self.select_all {
+            self.input.clear();
+            self.cursor_position = 0;
+            self.select_all = false;
+            self.slash_menu_hidden = false;
+            self.mention_menu_hidden = false;
+            self.mention_menu_selected = 0;
+            self.needs_redraw = true;
+            return;
+        }
         let cursor_byte = byte_index_at_char(&self.input, self.cursor_position);
         if cursor_byte >= self.input.len() {
             return;
@@ -3346,11 +3406,13 @@ impl App {
     }
 
     pub fn move_cursor_left(&mut self) {
+        self.select_all = false;
         self.cursor_position = self.cursor_position.saturating_sub(1);
         self.needs_redraw = true;
     }
 
     pub fn move_cursor_right(&mut self) {
+        self.select_all = false;
         if self.cursor_position < char_count(&self.input) {
             self.cursor_position += 1;
             self.needs_redraw = true;
@@ -3358,18 +3420,30 @@ impl App {
     }
 
     pub fn move_cursor_start(&mut self) {
+        self.select_all = false;
         self.cursor_position = 0;
         self.needs_redraw = true;
     }
 
     pub fn move_cursor_end(&mut self) {
+        self.select_all = false;
         self.cursor_position = char_count(&self.input);
+        self.needs_redraw = true;
+    }
+
+    /// Select all input text. Subsequent Backspace/Delete clears the entire
+    /// buffer; typing replaces it.
+    pub fn select_all(&mut self) {
+        self.clear_input_history_navigation();
+        self.cursor_position = char_count(&self.input);
+        self.select_all = true;
         self.needs_redraw = true;
     }
 
     /// In a multiline composer, jump to the start of the current line.
     /// On single-line input this is equivalent to `move_cursor_start`.
     pub fn move_cursor_line_start(&mut self) {
+        self.select_all = false;
         let byte_pos = byte_index_at_char(&self.input, self.cursor_position);
         let before = &self.input[..byte_pos];
         if let Some(last_nl_byte) = before.rfind('\n') {
@@ -3385,6 +3459,7 @@ impl App {
     /// (just before the next `\n` or at the end of input).
     /// On single-line input this is equivalent to `move_cursor_end`.
     pub fn move_cursor_line_end(&mut self) {
+        self.select_all = false;
         let search_start = byte_index_at_char(&self.input, self.cursor_position);
         if let Some(offset) = self.input[search_start..].find('\n') {
             self.cursor_position = char_count(&self.input[..search_start + offset]);
@@ -3397,6 +3472,7 @@ impl App {
     /// Move forward one word. Skips over the current word then any trailing
     /// whitespace to land on the first character of the next word.
     pub fn move_cursor_word_forward(&mut self) {
+        self.select_all = false;
         let text = self.input.clone();
         let total = char_count(&text);
         let mut pos = self.cursor_position;
@@ -3428,6 +3504,7 @@ impl App {
     /// Move backward one word. Skips leading whitespace then the preceding
     /// word to land on its first character.
     pub fn move_cursor_word_backward(&mut self) {
+        self.select_all = false;
         let text = self.input.clone();
         let mut pos = self.cursor_position;
         if pos == 0 {
@@ -3639,6 +3716,7 @@ impl App {
         self.clear_input_history_navigation();
         self.input.clear();
         self.cursor_position = 0;
+        self.select_all = false;
         self.selected_attachment_index = None;
         self.slash_menu_selected = 0;
         self.slash_menu_hidden = false;
