@@ -7,15 +7,34 @@
 
 ---
 
-## [0.0.13] - 2026-07-08
+## [0.0.13] - 2026-07-09
 
 ### 新增
 
+- **Y 键复制思考内容**（`ui.rs`）：在输入框为空且无模态打开时，按 `Y`（Shift+Y）将当前聚焦的 Thinking 块内容复制到剪贴板。折叠状态下的思考块也能直接复制完整内容。（#b）
+- **Agent 运行数菜单标记**（`ui.rs` / `mode_picker.rs`）：`Alt+A` 打开模式选择器时，如有 agent 在运行，Agent 选项后显示黄色 `(N)` 标记，切换前即可感知活跃 agent 数量。（#d）
+- **思考折叠头 Token 估算**（`history.rs`）：折叠或流式完成后的思考块头部显示 `~N tokens` 字符长度估算（≈ content.len()/4，四舍五入至 50 的倍数）。（#a）
 - **输入框全选支持**（`app.rs` / `ui.rs`）：`Ctrl+A` 现在全选输入文本而不是光标跳到开头。全选后 Backspace/Delete/打字全部替换，光标移动清除选区。
 
 ### 优化
 
 - **输入框边框始终显示**（`widgets/mod.rs`）：`composer_border = true` 时不再受终端尺寸限制，确保输入框和对话历史之间有清晰的视觉分隔。
+
+### 修复
+
+- **ToolContext::default() 编译错误**（`enter_plan_mode.rs` / `exit_plan_mode.rs`）：5 处测试中使用了不存在的 `Default` 实现，改为 `ToolContext::new(".")` 修复编译。
+## [0.0.13] - 2026-07-09
+
+### 新增
+
+- **Y 键复制思考内容**（`ui.rs`）：在输入框为空且无模态打开时，按 `Y`（Shift+Y）将当前聚焦的 Thinking 块内容复制到剪贴板。折叠状态下的思考块也能直接复制完整内容。（#b）
+- **Agent 运行数菜单标记**（`ui.rs` / `mode_picker.rs`）：`Alt+A` 打开模式选择器时，如有 agent 在运行，Agent 选项后显示黄色 `(N)` 标记，切换前即可感知活跃 agent 数量。（#d）
+- **思考折叠头 Token 估算**（`history.rs`）：折叠或流式完成后的思考块头部显示 `~N tokens` 字符长度估算（≈ content.len()/4，四舍五入至 50 的倍数）。（#a）
+
+### 修复
+
+- **ToolContext::default() 编译错误**（`enter_plan_mode.rs` / `exit_plan_mode.rs`）：5 处测试中使用了不存在的 `Default` 实现，改为 `ToolContext::new(".")` 修复编译。
+>>>>>>> 20988f54 (chore: bump v0.0.13 — Y key copy thinking, agent marker, token estimate)
 
 ---
 

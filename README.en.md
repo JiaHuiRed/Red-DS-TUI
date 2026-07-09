@@ -1,7 +1,7 @@
 # RedsWhale
 
 > **Fork** of [DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI) by [Hmbown](https://github.com/Hmbown) — thanks to the original authors for their excellent work.
-> Personal customization by Red. Version: **v0.0.12**
+> Personal customization by Red. Version: **v0.0.13**
 
 [简体中文 README（主版本）](README.md) | [日本語 README](README.ja-JP.md)
 
