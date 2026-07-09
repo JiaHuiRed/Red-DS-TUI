@@ -102,7 +102,7 @@ mod tests {
         let tool = EnterPlanModeTool::new(app_mode.clone());
 
         let result = tool
-            .execute(json!({"reason": "Testing"}), &ToolContext::default())
+            .execute(json!({"reason": "Testing"}), &ToolContext::new("."))
             .await
             .unwrap();
 
@@ -116,7 +116,7 @@ mod tests {
         let tool = EnterPlanModeTool::new(app_mode.clone());
 
         let result = tool
-            .execute(json!({}), &ToolContext::default())
+            .execute(json!({}), &ToolContext::new("."))
             .await
             .unwrap();
 

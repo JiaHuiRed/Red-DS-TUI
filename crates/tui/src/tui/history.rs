@@ -2113,6 +2113,17 @@ fn render_thinking(
         header_spans.push(Span::styled(" · ", Style::default().fg(palette::TEXT_DIM)));
         header_spans.push(Span::styled(format!("{dur:.1}s"), thinking_meta_style()));
     }
+    // Token estimate from content length (~4 chars/token for mixed text)
+    let est = content.len() / 4;
+    if est >= 50 && (collapsed || !streaming) {
+        let rounded = (est / 50) * 50;
+        header_spans.push(Span::styled(" · ", Style::default().fg(palette::TEXT_DIM)));
+        header_spans.push(Span::styled(
+            format!("~{}", rounded),
+            thinking_meta_style(),
+        ));
+        header_spans.push(Span::styled(" tokens", thinking_meta_style()));
+    }
     lines.push(Line::from(header_spans));
 
     let content_width = width.saturating_sub(3).max(1);

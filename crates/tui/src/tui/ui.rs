@@ -3438,6 +3438,15 @@ async fn run_event_loop(
                         app.yank();
                     }
                 }
+                KeyCode::Char('Y') if app.input.is_empty() && app.view_stack.is_empty() => {
+                    if copy_thinking_cell(app) {
+                        app.push_status_toast(
+                            "Thinking copied to clipboard",
+                            StatusToastLevel::Info,
+                            Some(2_000),
+                        );
+                    }
+                }
                 KeyCode::Char('x') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     let new_mode = match app.mode {
                         AppMode::Plan => AppMode::Agent,
@@ -4616,6 +4625,7 @@ async fn apply_command_result(
                     app.view_stack
                         .push(crate::tui::views::mode_picker::ModePickerView::new(
                             app.mode,
+                            running_agent_count(app),
                         ));
                 }
             }
@@ -7535,6 +7545,39 @@ pub(crate) fn copy_cell_to_clipboard(app: &mut App, cell_index: usize) -> bool {
     } else {
         app.status_message = Some("Copy failed".to_string());
         false
+    }
+}
+
+/// Copy the thinking content from the focused cell, if it is a
+/// Thinking block. Returns true when text was actually copied.
+fn copy_thinking_cell(app: &mut App) -> bool {
+    let Some(cell_index) = detail_target_cell_index(app) else {
+        app.status_message = Some("No thinking block focused".to_string());
+        return false;
+    };
+    let Some(cell) = app.cell_at_virtual_index(cell_index) else {
+        app.status_message = Some("No message at that line".to_string());
+        return false;
+    };
+    match cell {
+        HistoryCell::Thinking { content, .. } => {
+            let text = content.clone();
+            if text.trim().is_empty() {
+                app.status_message = Some("Thinking content is empty".to_string());
+                return false;
+            }
+            if app.clipboard.write_text(&text).is_ok() {
+                app.status_message = Some("Thinking copied".to_string());
+                true
+            } else {
+                app.status_message = Some("Copy failed".to_string());
+                false
+            }
+        }
+        _ => {
+            app.status_message = Some("Not a thinking block".to_string());
+            false
+        }
     }
 }
 

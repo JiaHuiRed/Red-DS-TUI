@@ -136,7 +136,7 @@ mod tests {
         }
 
         let result = tool
-            .execute(json!({"summary": "Done planning"}), &ToolContext::default())
+            .execute(json!({}), &ToolContext::new("."))
             .await
             .unwrap();
 
@@ -151,7 +151,7 @@ mod tests {
         let tool = ExitPlanModeTool::new(app_mode.clone(), plan_state);
 
         let result = tool
-            .execute(json!({}), &ToolContext::default())
+            .execute(json!({}), &ToolContext::new("."))
             .await
             .unwrap();
 
@@ -165,7 +165,7 @@ mod tests {
         let tool = ExitPlanModeTool::new(app_mode.clone(), plan_state);
 
         let result = tool
-            .execute(json!({}), &ToolContext::default())
+            .execute(json!({}), &ToolContext::new("."))
             .await
             .unwrap();
 

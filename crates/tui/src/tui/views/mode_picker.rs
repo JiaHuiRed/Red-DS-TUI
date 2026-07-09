@@ -44,16 +44,17 @@ const MODE_ROWS: &[ModeRow] = &[
 
 pub struct ModePickerView {
     cursor: usize,
+    agent_count: usize,
 }
 
 impl ModePickerView {
     #[must_use]
-    pub fn new(current: AppMode) -> Self {
+    pub fn new(current: AppMode, agent_count: usize) -> Self {
         let cursor = MODE_ROWS
             .iter()
             .position(|row| row.mode == current)
             .unwrap_or(0);
-        Self { cursor }
+        Self { cursor, agent_count }
     }
 
     fn selected_mode(&self) -> AppMode {
@@ -172,13 +173,29 @@ impl ModalView for ModePickerView {
             };
             let pointer = if is_cursor { ">" } else { " " };
 
-            lines.push(Line::from(vec![
+            let marker = if row.mode == AppMode::Agent && self.agent_count > 0 {
                 Span::styled(
-                    format!("{pointer} {}. {:<7}", row.number, row.name),
-                    row_style,
-                ),
-                Span::styled(row.hint, hint_style),
-            ]));
+                    format!(" ({}) ", self.agent_count),
+                    Style::default().fg(palette::STATUS_WARNING),
+                )
+            } else {
+                Span::raw("")
+            };
+
+            lines.push(Line::from(Span::styled(
+                format!("{pointer} {}. {:<7}", row.number, row.name),
+                row_style,
+            )));
+            // 追加 marker 作为独立的 Span，和 hint 同一行
+            let spans = match lines.pop() {
+                Some(Line { spans: mut s, .. }) => {
+                    s.push(marker);
+                    s.push(Span::styled(row.hint, hint_style));
+                    s
+                }
+                None => unreachable!(),
+            };
+            lines.push(Line::from(spans));
         }
 
         Paragraph::new(lines).render(inner, buf);
@@ -192,13 +209,13 @@ mod tests {
 
     #[test]
     fn opens_on_current_mode() {
-        let view = ModePickerView::new(AppMode::Plan);
+        let view = ModePickerView::new(AppMode::Plan, 0);
         assert_eq!(view.selected_mode(), AppMode::Plan);
     }
 
     #[test]
     fn enter_emits_selected_mode() {
-        let mut view = ModePickerView::new(AppMode::Agent);
+        let mut view = ModePickerView::new(AppMode::Agent, 0);
         view.handle_key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
         let action = view.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
         match action {
@@ -211,7 +228,7 @@ mod tests {
 
     #[test]
     fn number_keys_select_modes() {
-        let mut view = ModePickerView::new(AppMode::Agent);
+        let mut view = ModePickerView::new(AppMode::Agent, 0);
         let action = view.handle_key(KeyEvent::new(KeyCode::Char('3'), KeyModifiers::NONE));
         match action {
             ViewAction::EmitAndClose(ViewEvent::ModeSelected { mode }) => {
@@ -219,5 +236,11 @@ mod tests {
             }
             other => panic!("expected ModeSelected, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn agent_count_marker_shown_when_nonzero() {
+        let view = ModePickerView::new(AppMode::Agent, 3);
+        assert_eq!(view.agent_count, 3);
     }
 }
