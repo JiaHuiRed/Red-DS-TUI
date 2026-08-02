@@ -7,6 +7,14 @@
 
 ---
 
+## [0.0.14] - 2026-08-02
+
+### 重构
+
+- **run_event_loop 拆分**（`ui.rs` → `ui/engine_events.rs` / `ui/keyboard.rs` / `ui/terminal_events.rs`）：2730 行主循环精简至 410 行。引擎事件匹配（~30 个分支）、键盘处理（Onboarding 状态机 + 全部快捷键）、终端事件（粘贴/焦点恢复/Resize/鼠标）分别提取为独立子模块，行为不变。主循环仅保留调度与渲染逻辑，`ui.rs` 由 7696 行降至 5368 行。
+
+---
+
 ## [0.0.13] - 2026-07-09
 
 ### 新增
@@ -23,18 +31,6 @@
 ### 修复
 
 - **ToolContext::default() 编译错误**（`enter_plan_mode.rs` / `exit_plan_mode.rs`）：5 处测试中使用了不存在的 `Default` 实现，改为 `ToolContext::new(".")` 修复编译。
-## [0.0.13] - 2026-07-09
-
-### 新增
-
-- **Y 键复制思考内容**（`ui.rs`）：在输入框为空且无模态打开时，按 `Y`（Shift+Y）将当前聚焦的 Thinking 块内容复制到剪贴板。折叠状态下的思考块也能直接复制完整内容。（#b）
-- **Agent 运行数菜单标记**（`ui.rs` / `mode_picker.rs`）：`Alt+A` 打开模式选择器时，如有 agent 在运行，Agent 选项后显示黄色 `(N)` 标记，切换前即可感知活跃 agent 数量。（#d）
-- **思考折叠头 Token 估算**（`history.rs`）：折叠或流式完成后的思考块头部显示 `~N tokens` 字符长度估算（≈ content.len()/4，四舍五入至 50 的倍数）。（#a）
-
-### 修复
-
-- **ToolContext::default() 编译错误**（`enter_plan_mode.rs` / `exit_plan_mode.rs`）：5 处测试中使用了不存在的 `Default` 实现，改为 `ToolContext::new(".")` 修复编译。
->>>>>>> 20988f54 (chore: bump v0.0.13 — Y key copy thinking, agent marker, token estimate)
 
 ---
 
