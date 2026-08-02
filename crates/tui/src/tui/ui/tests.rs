@@ -17,9 +17,14 @@ use crate::tui::footer_ui::{
 use crate::tui::history::{
     ExecCell, ExecSource, GenericToolCell, HistoryCell, ToolCell, ToolStatus,
 };
-use crate::tui::views::{ModalView, ViewAction};
+use crate::tui::plan_prompt::PlanPromptView;
+use crate::tui::subagent_routing::{
+    handle_subagent_mailbox, reconcile_subagent_activity_state, sort_subagents_in_place,
+};
+use crate::tui::tool_routing::{handle_tool_call_complete, handle_tool_call_started};
+use crate::tui::views::{HelpView, ModalView, ViewAction};
 use crate::working_set::Workspace;
-use crossterm::event::{KeyEvent, MouseButton, MouseEvent, MouseEventKind};
+use crossterm::event::{KeyCode, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::text::Span;
 use std::collections::HashSet;
 use std::ffi::OsString;
