@@ -7,6 +7,18 @@
 
 ---
 
+## [0.0.15] - 2026-08-13
+
+### 优化
+
+- **提示词执行效率优化**（`prompts/base.md` + `prompts.rs`）：对照 Claude Code Opus 4.8 系统提示词，新增三个执行纪律章节——`Communicating with the user`（先给结论、可读性优先于简洁、收尾一句话总结、`file_path:line_number` 引用）、`Doing Tasks`（反过度工程、默认不写注释、只在系统边界做防御、安全红线、代码风格贴合周边）、`Executing Actions with Care`（不可逆/高风险操作确认清单、`git status` 前置、授权范围不延伸）。Context Management 追加 "When you have enough information to act, act" 防止重复推导。
+
+### 修复
+
+- **CHANGELOG 门禁测试路径 bug**：`changelog_entry_exists_for_current_package_version` 从 `crates/tui` 向上查找时先命中 crate 本地 CHANGELOG（上游 0.8.x 历史，含早期 0.0.x 条目），导致测试误报缺版本条目。现改为通过声明 `[workspace]` 的 `Cargo.toml` 定位 workspace 根，只检查根 CHANGELOG。
+
+---
+
 ## [0.0.14] - 2026-08-02
 
 ### 重构
