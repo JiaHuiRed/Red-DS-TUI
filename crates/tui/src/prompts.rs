@@ -677,6 +677,7 @@ pub fn system_prompt_for_mode_with_context_skills_session_and_approval(
              2. The system will preserve important information (files you're working on, recent messages, tool results)\n\
              3. After compaction, you'll see a summary of what was discussed and can continue seamlessly\n\n\
              If you notice context is getting long (>60% during sustained work), proactively suggest using `/compact` to the user.\n\n\
+             When you have enough information to act, act. Do not re-derive facts already established in the conversation, re-litigate a decision the user has already made, or narrate options you will not pursue. If you are weighing a choice, give a recommendation, not an exhaustive survey.\n\n\
              ### Prompt-cache awareness\n\n\
              DeepSeek caches the longest *byte-stable prefix* of every request and charges roughly 100× less for cache-hit tokens than miss tokens. The system prompt above is layered most-static-first specifically so the prefix stays stable turn-over-turn. To keep cache hits high:\n\
              - **Working set location:** the current repo working set is stored on new user messages inside a `<turn_meta>` block. Treat it as high-priority turn metadata, not as a stable system-prompt section.\n\
@@ -1296,25 +1297,35 @@ mod tests {
     /// hardcoded version string — the test self-updates with the workspace
     /// version bump and only fires when the CHANGELOG is the missing piece.
     ///
-    /// Walks up from `CARGO_MANIFEST_DIR` to find `CHANGELOG.md` instead of
-    /// assuming a fixed `../../CHANGELOG.md` layout. The workspace root is
-    /// the common case, but the walk also tolerates deeper crate layouts and
-    /// the packaged-crate case (where the workspace root has been stripped
-    /// out): if no `CHANGELOG.md` is reachable, the gate quietly skips
-    /// rather than panicking, so consumers running the suite outside the
-    /// workspace checkout don't see a spurious failure.
+    /// Walks up from `CARGO_MANIFEST_DIR` to find the workspace-root
+    /// `CHANGELOG.md` instead of assuming a fixed `../../CHANGELOG.md`
+    /// layout. The workspace root is located via the `Cargo.toml` that
+    /// declares `[workspace]`; a plain upward walk can't distinguish the
+    /// workspace changelog from crate-local ones — `crates/tui/CHANGELOG.md`
+    /// carries upstream history that also contains early 0.0.x entries, so
+    /// neither "first file hit" nor a version-prefix filter is reliable.
+    /// If no workspace root is reachable (packaged-crate case), the gate
+    /// quietly skips rather than panicking, so consumers running the suite
+    /// outside the workspace checkout don't see a spurious failure.
     #[test]
     fn changelog_entry_exists_for_current_package_version() {
         let version = env!("CARGO_PKG_VERSION");
         let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
         let Some(changelog_path) = manifest_dir
             .ancestors()
-            .map(|dir| dir.join("CHANGELOG.md"))
-            .find(|candidate| candidate.is_file())
+            .map(|dir| dir.join("Cargo.toml"))
+            .find(|candidate| {
+                candidate.is_file()
+                    && std::fs::read_to_string(candidate)
+                        .map(|contents| contents.contains("[workspace]"))
+                        .unwrap_or(false)
+            })
+            .and_then(|toml| toml.parent().map(|root| root.join("CHANGELOG.md")))
+            .filter(|candidate| candidate.is_file())
         else {
             eprintln!(
                 "changelog_entry_exists_for_current_package_version: no \
-                 CHANGELOG.md found above {} — skipping (this gate only \
+                 workspace-root CHANGELOG.md found above {} — skipping (this gate only \
                  fires inside a workspace checkout).",
                 manifest_dir.display()
             );
