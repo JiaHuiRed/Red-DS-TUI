@@ -783,7 +783,30 @@ where
         }
     }
 
+    #[cfg(target_os = "windows")]
+    if let Some(locale) = windows_system_locale() {
+        return locale;
+    }
+
     Locale::En
+}
+
+/// Map the Windows system UI language (GetUserDefaultUILanguage LCID) to a
+/// shipped locale. Windows machines almost never set `LC_ALL`/`LANG`, so
+/// without this probe an "auto" locale always resolves to English on a
+/// Chinese or Japanese Windows install.
+#[cfg(target_os = "windows")]
+fn windows_system_locale() -> Option<Locale> {
+    use windows::Win32::Globalization::GetUserDefaultUILanguage;
+    let lcid = unsafe { GetUserDefaultUILanguage() };
+    match lcid {
+        0x0804 | 0x1004 => Some(Locale::ZhHans), // zh-CN, zh-SG
+        0x0404 | 0x0C04 => Some(Locale::ZhHant), // zh-TW, zh-HK
+        0x0411 => Some(Locale::Ja),
+        0x0416 => Some(Locale::PtBr),
+        l if l & 0xFF == 0x0A => Some(Locale::Es419), // all Spanish LCIDs share low byte 0x0A
+        _ => None,
+    }
 }
 
 #[allow(dead_code)]
@@ -2714,7 +2737,13 @@ mod tests {
             }),
             Locale::ZhHant
         );
+        #[cfg(not(target_os = "windows"))]
         assert_eq!(resolve_locale_with_env("auto", |_| None), Locale::En);
+        #[cfg(target_os = "windows")]
+        assert_eq!(
+            resolve_locale_with_env("auto", |_| None),
+            windows_system_locale().unwrap_or(Locale::En)
+        );
     }
 
     #[test]
