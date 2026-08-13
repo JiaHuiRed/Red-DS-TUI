@@ -7,6 +7,13 @@
 
 ---
 
+## [0.0.16] - 2026-08-13
+
+### 优化
+
+- **工具使用策略纠偏**（`prompts/base.md`，净减 24 行）：实测会话中 95% 工具调用是 `task_shell_start`/`task_shell_wait` 串行往返（一个命令两轮 API），代码探索工具几乎未用。Toolbox 移除 Shell 用途中的 "searches" 字样，明确读文件用 `read_file`、搜代码用 `grep_files`、禁止 shell out；独立命令用 `&&`/`;` 合并省轮次；瞬时命令禁止后台轮询；子代理默认不启用（3+ 独立任务才开）；RLM 章节 17 行精简为 4 行（仅 >50K token 输入使用）；删除与 Composition Pattern 重复的默认工作流段。
+- **Windows 中文系统自动启用 zh-Hans UI**：`resolve_locale("auto")` 在无 `LC_ALL`/`LANG` 环境变量的 Windows 上恒落回英文，231 条中文翻译闲置。新增 `GetUserDefaultUILanguage` 系统语言探测（zh-CN/SG→zh-Hans、zh-TW/HK→zh-Hant、ja→ja、pt-BR→pt-BR、西语系→es-419），中文 Windows 开箱即中文界面。
+
 ## [0.0.15] - 2026-08-13
 
 ### 优化

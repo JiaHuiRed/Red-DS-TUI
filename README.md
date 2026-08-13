@@ -3,7 +3,7 @@
 > **Fork 自 [Hmbown/DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI)，感谢原作者的出色工作。**
 > 本仓库为 Red 的个人定制版，专为简体中文用户优化。
 
-[![版本](https://img.shields.io/badge/版本-v0.0.15-blue)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/版本-v0.0.16-blue)](CHANGELOG.md)
 [![上游同步](https://img.shields.io/badge/上游-v0.8.40-green)](https://github.com/Hmbown/DeepSeek-TUI)
 [![许可证](https://img.shields.io/badge/许可证-MIT-lightgrey)](LICENSE)
 
